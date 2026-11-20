@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+# CodeRabbit 設定範本（schema 文件：https://docs.coderabbit.ai/reference/configuration）
+#
+# CodeRabbit 預設只自動審「base＝預設分支（main）」的 PR；
+# 採 stacked PR 工作流（feature 分支互為 base）時，其餘 PR 一律被標成 Review skipped。
+# 明列 base_branches 讓所有 base 分支的 PR 都確實觸發自動審查。
+#
+# 注意：CodeRabbit 讀的是「PR head 分支」上的這個檔，推進 PR 分支即生效；
+# 先前已被跳過的 PR 可留言 `@coderabbitai full review` 補審。
+language: "zh-TW"
+reviews:
+  auto_review:
+    enabled: true
+    drafts: false        # 草稿 PR 仍不審，ready for review 才觸發
+    base_branches:
+      - ".*"             # regex：任何 base 分支（預設分支本就內建，此處放寬到全部）

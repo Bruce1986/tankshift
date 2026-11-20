@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gemini-Grade Review"
+  short_description: "Deep, verified code review with convergence fixes"
+  default_prompt: "Use $gemini-grade-review to review this change thoroughly and verify every finding."

@@ -1,0 +1,69 @@
+# === 通用 ===
+# 作業系統
+.DS_Store
+Thumbs.db
+
+# 編輯器 / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# 機密：環境變數與金鑰（千萬不要 commit）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.*
+
+# 日誌與暫存
+*.log
+tmp/
+.cache/
+
+# === 依語言取消註解需要的區塊 ===
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+# .venv/
+# venv/
+# .mypy_cache/
+# .pytest_cache/
+# .ruff_cache/
+# dist/
+# *.egg-info/
+
+# --- Node / JS / TS ---
+# node_modules/
+# dist/
+# build/
+# coverage/
+# *.tsbuildinfo
+# .npm/
+
+# --- Kotlin / Android / Gradle ---
+# .gradle/
+# build/
+# local.properties
+# *.jks
+# *.keystore
+# *.apk
+# *.aab
+# captures/
+# .cxx/
+
+# --- Java ---
+# *.class
+# target/
+
+# --- Go ---
+# bin/
+# *.exe
+# *.test
+# *.out
+
+# --- Rust ---
+# /target/
+# Cargo.lock   # library 才忽略；binary 專案請保留

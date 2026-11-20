@@ -1,0 +1,34 @@
+# repo-template 自身的測試 — 驗證 bundled skill 的確定性零件（review_lib）。
+# ⚠️ 用此範本建立新專案時，請刪除本檔；專案自己的 CI 骨架見 ci.yml。
+# 之所以獨立成檔：ci.yml 是給下游專案填的語言無關骨架（填好前只做 checkout），
+# 但本 repo 自帶的 Python 工具碼需要真正被測，否則 PR 上的綠勾是假訊號。
+name: Template selftest
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '.claude/skills/**/*.py'
+      - '.agents/skills/**/*.py'
+      - '.github/workflows/template-selftest.yml'
+  pull_request:
+    paths:
+      - '.claude/skills/**/*.py'
+      - '.agents/skills/**/*.py'
+      - '.github/workflows/template-selftest.yml'
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # 離線模式（不帶 --net）：不打真實 PyPI/npm，CI 不受外部 registry 影響
+      - name: Run bundled-skill tests (offline)
+        run: python3 .claude/skills/gemini-grade-review/test_review_lib.py
+      - name: Run Codex bundled-skill tests (offline)
+        run: python3 .agents/skills/gemini-grade-review/scripts/test_review_lib.py

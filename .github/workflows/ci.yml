@@ -1,0 +1,44 @@
+# CI 骨架 — 語言無關範本。
+# 建立專案時：
+#   1. 取消註解你語言的 setup 步驟（或換成等效的 action）。
+#   2. 把 Lint / Typecheck / Test 步驟換成 AGENTS.md「驗證指令」裡填的實際指令
+#      （{{LINT_COMMAND}} / {{TYPECHECK_COMMAND}} / {{TEST_COMMAND}}）。
+#   3. 沒有對應步驟（例如沒有型別檢查）就刪掉那一步。
+# 在填好之前，這個 workflow 只做 checkout、不會驗證任何東西。
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - '**/*.md'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # --- 依語言取消註解一組 setup ---
+      # - uses: actions/setup-node@v4          # Node / TS
+      #   with: { node-version: '20' }
+      # - uses: actions/setup-python@v5        # Python
+      #   with: { python-version: '3.12' }
+      # - uses: actions/setup-go@v5            # Go
+      #   with: { go-version: '1.22' }
+      # - uses: actions/setup-java@v4          # Java / Kotlin
+      #   with: { distribution: 'temurin', java-version: '17' }
+      # - uses: dtolnay/rust-toolchain@stable  # Rust
+
+      # --- 換成本專案實際的驗證指令後取消註解 ---
+      # - name: Lint
+      #   run: {{LINT_COMMAND}}
+      # - name: Typecheck
+      #   run: {{TYPECHECK_COMMAND}}
+      # - name: Test
+      #   run: {{TEST_COMMAND}}
