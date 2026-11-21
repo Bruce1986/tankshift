@@ -11,7 +11,7 @@
 | 項目 | 內容 |
 |---|---|
 | **進行中** | T-01（PR #1 審核中；合併後改 ✅、這格改「無」） |
-| **下一步** | T-02 TypeScript 工具鏈＋CI（新增相依套件前先問 owner）；T-10 看 PR #1 的 `/gemini review` 實測結果 |
+| **下一步** | T-02 TypeScript 工具鏈＋CI（新增相依套件前先問 owner）；T-10 待 owner 確認 Gemini App 的 repo 存取設定後重貼 `/gemini review`（目前 ⛔） |
 | **卡住／待拍板** | PR #1 的 `/gemini review` 沒有回應，疑似 Gemini App 沒裝在本 repo（見 2026-11-21 日誌），要 owner 確認 App 的 repo 存取設定 |
 
 ---
