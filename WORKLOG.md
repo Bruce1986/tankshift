@@ -11,12 +11,25 @@
 | 項目 | 內容 |
 |---|---|
 | **進行中** | T-01（PR #1 審核中；合併後改 ✅、這格改「無」） |
-| **下一步** | T-02 TypeScript 工具鏈＋CI（新增相依套件前先問 owner）；T-10 待 owner 確認 Gemini App 的 repo 存取設定後重貼 `/gemini review`（目前 ⛔） |
-| **卡住／待拍板** | PR #1 的 `/gemini review` 沒有回應，疑似 Gemini App 沒裝在本 repo（見 2026-11-21 日誌），要 owner 確認 App 的 repo 存取設定 |
+| **下一步** | T-02 TypeScript 工具鏈＋CI（新增相依套件前先問 owner）；T-10 另開小 PR 替換 AGENTS.md 的 review 占位符 |
+| **卡住／待拍板** | 無 |
 
 ---
 
 ## 日誌（新的在上）
+
+### 2026-11-22
+
+#### 完成
+- T-10 原因查明：owner 在 Google Cloud Developer Connect 把本 repo 加進 Git 存放區之後，2026-11-21 18:08:32Z 重貼 `/gemini review`，Gemini 在 18:10:52Z 送出 review（7 則 medium inline 意見）。**每個新 repo 都要做這個設定**，Gemini 才會回應。
+- 依 Gemini 意見（styleguide §11）修 DESIGN：加目錄；數學改用 LaTeX；粗體假標題改成 `####`。
+
+#### 問題 / 決策
+- 數學沒有照 Gemini 建議用 `$...$`，而是用 GitHub 的 $`...`$ 與 ` ```math ` 區塊。理由：用 GitHub Markdown API（`gh api markdown`）渲染後發現，含 `_{` 或 `\,` 的 `$...$` 會先被當成斜體與跳脫字元，有一個式子整段消失。改寫後同一個檢查顯示 54 個行內、3 個獨立數學式全部被辨識，沒有殘留。理由寫在 DESIGN 開頭的 HTML 註解裡。
+- 目錄錨點沒辦法用 Markdown API 驗證，因為它不產生標題 id；只依 GitHub 的錨點命名規則人工核對過。
+
+#### 下一步
+- T-10 另開小 PR；T-02
 
 ### 2026-11-21
 

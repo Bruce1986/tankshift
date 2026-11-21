@@ -1,10 +1,22 @@
 # tankshift Design
 
+<!-- Math follows the style guide's "wrap math in $" rule using GitHub's $`...`$ form for inline math and ```math blocks for display math. Plain $...$ breaks here: formulas with `_{` or `\,` are parsed as Markdown emphasis and escapes before the math renderer sees them (checked with GitHub's Markdown API on 2026-11-22). -->
+
 **Document version:** 0.1 (v1 plan, nothing implemented yet)
 **Date:** 2026-11-21
 **Author:** Bruce Jhang
 
 This document is for developers: why the engine is shaped the way it is. For what the project is and how to use it, see the [README](../README.md).
+
+## Contents
+
+- [1. Overview](#1-overview)
+- [2. Architecture](#2-architecture) — [2.1 Data flow](#21-data-flow), [2.2 Modules](#22-modules), [2.3 Scenario file](#23-scenario-file-sketch), [2.4 Failure rules](#24-failure-rules-proposed)
+- [3. Core model](#3-core-model) — [3.1 Tank](#31-tank-single-node-v1), [3.2 Heat sources](#32-heat-sources), [3.3 Verification](#33-verification)
+- [4. Decisions](#4-decisions)
+- [5. Prior art](#5-prior-art)
+- [6. Known challenges](#6-known-challenges)
+- [7. Future work](#7-future-work)
 
 ---
 
@@ -84,15 +96,15 @@ Units are fixed and appear as a suffix in field names: temperature °C (`…C`),
 
 These rules keep a silent fallback from changing a headline number. They are proposals until confirmed in the task that implements them, and finer modelling choices are left to those tasks.
 
-- **Validate before simulating.** A missing required field, a group event outside the simulated year, or `T_tap ≤ T_mains` at any step is an error that names the field and the value. Nothing is silently dropped, wrapped or clamped.
+- **Validate before simulating.** A missing required field, a group event outside the simulated year, or $`T_{\text{tap}} \le T_{\text{mains}}`$ at any step is an error that names the field and the value. Nothing is silently dropped, wrapped or clamped.
 - **Tariff and calendar coverage.** If a tariff, holiday list or temperature series does not cover every step of the simulated year, the engine stops and names the missing dates. It never substitutes a default day type or an average price.
-- **Savings must be like for like.** A modified scenario that delivers less hot water spends less energy, and that is not a saving. A saving is reported as comparable only when the scenario delivers at least the baseline's tap heat (`∫ ṁ_tap·cp·(T_delivered − T_mains) dt`, within a stated tolerance) and has no more unmet shower-minutes or Legionella-threshold hours. Otherwise the report marks it as not comparable and shows the heat shortfall in kWh next to it.
+- **Savings must be like for like.** A modified scenario that delivers less hot water spends less energy, and that is not a saving. A saving is reported as comparable only when the scenario delivers at least the baseline's tap heat ($`\int \dot{m}_{\text{tap}}\, c_p\, (T_{\text{delivered}} - T_{\text{mains}})\, dt`$, within a stated tolerance) and has no more unmet shower-minutes or Legionella-threshold hours. Otherwise the report marks it as not comparable and shows the heat shortfall in kWh next to it.
 - **Same draws in both scenarios.** Draw events are generated from the venue, its location calendar, the simulated year and the seed only, never from tank, source, control or tariff fields, so baseline and scenario see identical demand. A comparison between scenarios with different venues, calendars or years is rejected. Because one seed is one possible year, the report either states the seed or, when several seeds are run, gives the saving as a median with its range.
 - **Simulated year.** The year runs from local 1 January 00:00 to the next local 1 January 00:00 in the scenario's time zone. Coverage checks use that span.
 - **Time grid.** Steps are UTC minutes. Heating windows, group events and demand shapes are resolved in the scenario's local civil time, so daylight saving days (Australia) have 23 or 25 hours of steps. On a transition day, a dated input (a group event) at a local time that does not exist or occurs twice is a validation error unless it states the offset. A recurring daily edge (a heating window, a demand shape) resolves deterministically instead: a nonexistent time moves to the next valid instant, a repeated time takes its first occurrence, and the report notes it. Taiwan has no daylight saving time. Each tariff template states the clock its periods follow (civil or standard time) with a source, and tariff periods are resolved on that clock; T-06 checks this for the chosen Australian tariff.
 - **Heating windows are strict.** The heater never runs outside the allowed windows. When the tank falls short (a window ends below the setpoint, or showers go unmet), the report says so; the engine does not override the schedule. Whether a safety override should exist is an open question for T-03.
 - **Undated series.** A typical-year series without dates (such as a TMY weather file) is aligned to the simulated year by month and day. In a leap year, 29 February repeats 28 February, and the report notes it.
-- **Clamping is visible.** The COP model's inputs (`T_air`, `T`) are clamped to the range covered by the fitted operating points. The report shows, for baseline and scenario separately, the share of heat pump electricity computed with clamped inputs, as an assumption warning.
+- **Clamping is visible.** The COP model's inputs ($`T_{\text{air}}`$, $`T`$) are clamped to the range covered by the fitted operating points. The report shows, for baseline and scenario separately, the share of heat pump electricity computed with clamped inputs, as an assumption warning.
 
 Which task confirms each proposal in §2.2, §2.3, §2.4 and §3:
 
@@ -100,7 +112,7 @@ Which task confirms each proposal in §2.2, §2.3, §2.4 and §3:
 |---|---|
 | Scenario schema framework (§2.3; T-04 to T-06 add their own fields), validation framework, mixing-valve model and unmet definition, heating windows strict or with a safety override, loop loss coefficient and default | T-03 |
 | Heat pump COP and output fits, input clamping, the four environment temperature inputs and how an undated typical-year series maps to the simulated year | T-04 |
-| `T_tap` default, draw generation independent of tank, source, control and tariff, day-type and monthly multipliers | T-05 |
+| $`T_{\text{tap}}`$ default, draw generation independent of tank, source, control and tariff, day-type and monthly multipliers | T-05 |
 | Location calendar and each tariff's own day classification, holiday sources, simulated year, time grid and daylight saving rules, tariff clock basis, coverage checks, gas price and carbon | T-06 |
 | Unmet tolerance, Legionella threshold and lower-bound reporting, like-for-like comparison, seed and clamping reporting | T-07 |
 
@@ -114,35 +126,40 @@ Until a value is confirmed, earlier tasks use a placeholder: T-03 tests unmet de
 
 The tank is one fully mixed volume. Per step, the energy balance follows the form used by EnergyPlus `WaterHeater:Mixed` ([Engineering Reference](https://bigladdersoftware.com/epx/docs/9-6/engineering-reference/water-thermal-tanks-includes-water-heaters.html)), with a recirculation loop added:
 
-```
-m·cp·dT/dt = q_heater + UA·(T_surr − T) + UA_loop·(T_loop − T) − q_draw
-```
-
-**Draws and delivery temperature.** Demand is specified at the tap: tap flow `ṁ_tap` and a target delivery temperature `T_tap`, with `T_tap > T_mains` required. A thermostatic mixing valve blends tank water with mains water:
-
-- While `T ≥ T_tap`, the tank supplies the fraction `(T_tap − T_mains)/(T − T_mains)` of the tap flow (between 0 and 1) and the rest is mains water. The heat leaving the tank is then the constant `q_draw = ṁ_tap·cp·(T_tap − T_mains)`, independent of `T`.
-- While `T < T_tap`, the tank supplies the whole tap flow, so `q_draw = ṁ_tap·cp·(T − T_mains)` and the water is delivered at `T`. That shower-minute counts as **unmet** when `T` is below `T_tap` by more than a tolerance.
-
-The default `T_tap` and the tolerance are proposals to be settled in T-05 and T-07. The report counts unmet shower-minutes and the number of people affected, by hour.
-
-`T_surr` is the temperature around the tank and `T_loop` the temperature around the recirculation loop (§3.2). `m` is the mass of water in the tank (from `tank.volumeL`), `cp` the specific heat of water, `UA` and `UA_loop` the loss coefficients of the tank and the loop (`tank.uaWPerK`, `recirculation.uaWPerK`), and `q_heater` the source's thermal output while on (§3.2) and 0 while off.
-
-**Solving a step.** Draws, the environment temperatures (§3.2) and tariff values are piecewise constant on the one-minute grid, so within a step they do not change. Within one regime the equation is then `dT/dt = a + b·T` with constant `a` and `b`:
-
-```
-k = ṁ_tap·cp  while T < T_tap,  k = 0 otherwise
-b = −(UA + UA_loop + k)/(m·cp)                                            ≤ 0
-a = (q_heater + UA·T_surr + UA_loop·T_loop + k·T_mains − q_valve)/(m·cp)
-q_valve = ṁ_tap·cp·(T_tap − T_mains)  while T ≥ T_tap,  0 otherwise
+```math
+m\, c_p \frac{dT}{dt} = q_{\text{heater}} + UA\,(T_{\text{surr}} - T) + UA_{\text{loop}}\,(T_{\text{loop}} - T) - q_{\text{draw}}
 ```
 
-The closed-form solution is `T(t) = (T₀ + a/b)·e^(b·t) − a/b`, which decays towards `−a/b`. When `b = 0` the solution is `T(t) = T₀ + a·t`. The form above loses accuracy when `b` is close to 0 (`a/b` becomes large and cancels), so the implementation uses the equivalent form `T(t) = T₀ + (a + b·T₀)·expm1(b·t)/b`, taking `expm1(b·t)/b` as `t` when `b = 0`.
+**Draws and delivery temperature.** Demand is specified at the tap: tap flow $`\dot{m}_{\text{tap}}`$ and a target delivery temperature $`T_{\text{tap}}`$, with $`T_{\text{tap}} > T_{\text{mains}}`$ required. A thermostatic mixing valve blends tank water with mains water:
 
-The solution is exact within a regime, because while on, v1 heat sources deliver a thermal output that is constant within a step (§3.2). The step is split wherever the regime changes inside it: when the thermostat switches, and when `T` crosses `T_tap`. Only heat pump electricity is approximate: its COP depends on `T`, and v1 evaluates it at the start of each sub-step.
+- While $`T \ge T_{\text{tap}}`$, the tank supplies the fraction $`(T_{\text{tap}} - T_{\text{mains}})/(T - T_{\text{mains}})`$ of the tap flow (between 0 and 1) and the rest is mains water. The heat leaving the tank is then the constant $`q_{\text{draw}} = \dot{m}_{\text{tap}}\, c_p\, (T_{\text{tap}} - T_{\text{mains}})`$, independent of $`T`$.
+- While $`T < T_{\text{tap}}`$, the tank supplies the whole tap flow, so $`q_{\text{draw}} = \dot{m}_{\text{tap}}\, c_p\, (T - T_{\text{mains}})`$ and the water is delivered at $`T`$. That shower-minute counts as **unmet** when $`T`$ is below $`T_{\text{tap}}`$ by more than a tolerance.
+
+The default $`T_{\text{tap}}`$ and the tolerance are proposals to be settled in T-05 and T-07. The report counts unmet shower-minutes and the number of people affected, by hour.
+
+$`T_{\text{surr}}`$ is the temperature around the tank and $`T_{\text{loop}}`$ the temperature around the recirculation loop (§3.2). $`m`$ is the mass of water in the tank (from `tank.volumeL`), $`c_p`$ the specific heat of water, $`UA`$ and $`UA_{\text{loop}}`$ the loss coefficients of the tank and the loop (`tank.uaWPerK`, `recirculation.uaWPerK`), and $`q_{\text{heater}}`$ the source's thermal output while on (§3.2) and 0 while off.
+
+**Solving a step.** Draws, the environment temperatures (§3.2) and tariff values are piecewise constant on the one-minute grid, so within a step they do not change. Within one regime the equation is then $`dT/dt = a + bT`$ with constant $`a`$ and $`b`$:
+
+```math
+k = \begin{cases} \dot{m}_{\text{tap}}\, c_p & T < T_{\text{tap}} \\ 0 & \text{otherwise} \end{cases}
+\qquad
+q_{\text{valve}} = \begin{cases} \dot{m}_{\text{tap}}\, c_p\, (T_{\text{tap}} - T_{\text{mains}}) & T \ge T_{\text{tap}} \\ 0 & \text{otherwise} \end{cases}
+```
+
+```math
+b = -\frac{UA + UA_{\text{loop}} + k}{m\, c_p} \le 0
+\qquad
+a = \frac{q_{\text{heater}} + UA\, T_{\text{surr}} + UA_{\text{loop}}\, T_{\text{loop}} + k\, T_{\text{mains}} - q_{\text{valve}}}{m\, c_p}
+```
+
+The closed-form solution is $`T(t) = (T_0 + a/b)\, e^{bt} - a/b`$, which decays towards $`-a/b`$. When $`b = 0`$ the solution is $`T(t) = T_0 + a t`$. The form above loses accuracy when $`b`$ is close to 0 ($`a/b`$ becomes large and cancels), so the implementation uses the equivalent form $`T(t) = T_0 + (a + b T_0)\, \operatorname{expm1}(bt)/b`$, taking $`\operatorname{expm1}(bt)/b`$ as $`t`$ when $`b = 0`$.
+
+The solution is exact within a regime, because while on, v1 heat sources deliver a thermal output that is constant within a step (§3.2). The step is split wherever the regime changes inside it: when the thermostat switches, and when $`T`$ crosses $`T_{\text{tap}}`$. Only heat pump electricity is approximate: its COP depends on $`T`$, and v1 evaluates it at the start of each sub-step.
 
 The model is to be implemented from the public EnergyPlus documentation only; EcosizerEngine source is not read (§5).
 
-**Known biases of the single node.**
+#### Known biases of the single node
 
 - *Cold showers: pessimistic.* A fully mixed tank lowers outlet temperature as soon as cold water enters, while a real stratified tank keeps delivering hot water until the cold layer reaches the outlet. The model is expected to under-predict how much hot water a tank can deliver in a peak. That is the safe direction for warning about cold showers, but it overstates the need for a bigger tank.
 - *Legionella: optimistic.* A real tank has a cooler bottom zone that can sit below the threshold while the mean temperature is above it. v1 Legionella-threshold hours are therefore reported as a lower bound.
@@ -153,23 +170,23 @@ A stratified model is the planned second step.
 ### 3.2 Heat sources
 
 - **Electric resistance:** rated thermal output while on; heat equals electricity.
-- **Heat pump:** thermal output while on is a linear function of source air temperature `T_air` (proposal, T-04), so a cold night delivers less heat; `T_air` is constant within a step, so output is too. Electricity = heat / COP. COP is a linear function of `T_air` and tank temperature, with clamped inputs (§2.4). A constant COP was rejected because it would make night-time heating look better than it is.
+- **Heat pump:** thermal output while on is a linear function of source air temperature $`T_{\text{air}}`$ (proposal, T-04), so a cold night delivers less heat; $`T_{\text{air}}`$ is constant within a step, so output is too. Electricity = heat / COP. COP is a linear function of $`T_{\text{air}}`$ and tank temperature, with clamped inputs (§2.4). A constant COP was rejected because it would make night-time heating look better than it is.
 - **Gas boiler:** rated thermal output while on, fixed efficiency on fuel energy. Its cost and carbon need a gas price and a gas carbon factor, which T-06 supplies alongside the electricity tariffs.
 
-Fitting the linear COP model `COP = c₀ + c₁·T_air + c₂·T` needs at least three published operating points, not all on one line in the (`T_air`, `T`) plane.
+Fitting the linear COP model $`\mathrm{COP} = c_0 + c_1 T_{\text{air}} + c_2 T`$ needs at least three published operating points, not all on one line in the $`(T_{\text{air}}, T)`$ plane.
 
 **Environment temperatures vary over the year.** The scenario takes four temperature inputs, each as an annual series or a seasonal profile with a documented source:
 
-- `T_surr`, the temperature around the tank, which drives standby loss;
-- `T_loop`, the temperature around the recirculation loop, which drives loop loss (it may reuse the `T_surr` series);
-- `T_air`, the heat pump's source air temperature, which is outdoor air for an outdoor unit;
-- `T_mains`, the mains water temperature, which sets how much heat each litre needs.
+- $`T_{\text{surr}}`$, the temperature around the tank, which drives standby loss;
+- $`T_{\text{loop}}`$, the temperature around the recirculation loop, which drives loop loss (it may reuse the $`T_{\text{surr}}`$ series);
+- $`T_{\text{air}}`$, the heat pump's source air temperature, which is outdoor air for an outdoor unit;
+- $`T_{\text{mains}}`$, the mains water temperature, which sets how much heat each litre needs.
 
 A single constant would hide exactly the winter-night effect that D6 exists to capture. The constant `surroundingsC` fields in the §2.3 sketch are placeholders for these inputs.
 
 ### 3.3 Verification
 
-- **Energy balance invariant.** At every step: heat added = heat leaving with draws (`q_draw`, in whichever regime applies) + standby loss + recirculation loss + change in stored heat. Losses and draw heat are the exact integrals of the closed-form `T(t)` over each sub-step, and stored heat is `m·cp·T`, so the tolerance only covers floating-point round-off, not discretisation error. A model that drops or double-counts a term fails this check.
+- **Energy balance invariant.** At every step: heat added = heat leaving with draws ($`q_{\text{draw}}`$, in whichever regime applies) + standby loss + recirculation loss + change in stored heat. Losses and draw heat are the exact integrals of the closed-form $`T(t)`$ over each sub-step, and stored heat is $`m\, c_p\, T`$, so the tolerance only covers floating-point round-off, not discretisation error. A model that drops or double-counts a term fails this check.
 - **Analytic cases.** Pure standby cooling and pure heating from a known start temperature are compared with hand-calculated results.
 - **Mutation testing** of the invariant tests, to show they fail when the model is broken.
 - Comparison with EnergyPlus output is planned, but needs EnergyPlus to be downloaded and run, so it waits for owner approval.
