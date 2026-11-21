@@ -98,7 +98,7 @@ Which task confirms each proposal in §2.2, §2.3, §2.4 and §3:
 
 | Proposal | Confirmed in |
 |---|---|
-| Scenario schema (§2.3), validation framework, mixing-valve model and unmet definition, heating windows strict or with a safety override, loop loss coefficient and default | T-03 |
+| Scenario schema framework (§2.3; T-04 to T-06 add their own fields), validation framework, mixing-valve model and unmet definition, heating windows strict or with a safety override, loop loss coefficient and default | T-03 |
 | Heat pump COP and output fits, input clamping, the four environment temperature inputs and how an undated typical-year series maps to the simulated year | T-04 |
 | `T_tap` default, draw generation independent of tank, source, control and tariff, day-type and monthly multipliers | T-05 |
 | Location calendar and each tariff's own day classification, holiday sources, simulated year, time grid and daylight saving rules, tariff clock basis, coverage checks, gas price and carbon | T-06 |
@@ -125,7 +125,7 @@ m·cp·dT/dt = q_heater + UA·(T_surr − T) + UA_loop·(T_loop − T) − q_dra
 
 The default `T_tap` and the tolerance are proposals to be settled in T-05 and T-07. The report counts unmet shower-minutes and the number of people affected, by hour.
 
-`T_surr` is the temperature around the tank and `T_loop` the temperature around the recirculation loop (§3.2).
+`T_surr` is the temperature around the tank and `T_loop` the temperature around the recirculation loop (§3.2). `m` is the mass of water in the tank (from `tank.volumeL`), `cp` the specific heat of water, `UA` and `UA_loop` the loss coefficients of the tank and the loop (`tank.uaWPerK`, `recirculation.uaWPerK`), and `q_heater` the source's thermal output while on (§3.2) and 0 while off.
 
 **Solving a step.** Draws, the environment temperatures (§3.2) and tariff values are piecewise constant on the one-minute grid, so within a step they do not change. Within one regime the equation is then `dT/dt = a + b·T` with constant `a` and `b`:
 

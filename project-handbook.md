@@ -39,7 +39,7 @@
 | T-07 | 節省報告：基準 vs 調整情境（HTML／Markdown／CSV，英／中）；「洗到冷水」容許差在此定 | ⏳ | T-05、T-06；確認 DESIGN §2.4 對照表中屬於 T-07 的提案 |
 | T-08 | CLI＋發布 npm 套件 | ⏳ | T-07 |
 | T-09 | 網站教學互動頁（畢旅 40 人情境） | ⏳ | T-08；在 [`Bruce1986/brucejhang_website`](https://github.com/Bruce1986/brucejhang_website) 開 PR（private repo） |
-| T-10 | 接上線上 review bot 並替換 AGENTS.md 的 `{{REVIEW_COMMAND}}`／`{{BOT_USER_LOGIN}}` | ⏳ | PR #1 實測 `/gemini review`；觸發時間、等待多久、有無回應記在 PR #1 與 WORKLOG。要寫「無線上 gate」前，先完整照 [`AGENTS.md`「尚未接線上 bot 的專案怎麼辦」](AGENTS.md#尚未接線上-bot-的專案怎麼辦) 走過掃描與分類 |
+| T-10 | 接上線上 review bot 並替換 AGENTS.md 的 `{{REVIEW_COMMAND}}`／`{{BOT_USER_LOGIN}}` | ⛔ | PR #1 已於 2026-11-21 實測 `/gemini review`、沒有回應，待 owner 確認 Gemini App 的 repo 存取設定（見 WORKLOG 2026-11-21）；觸發時間、等待多久、有無回應記在 PR #1 與 WORKLOG。要寫「無線上 gate」前，先完整照 [`AGENTS.md`「尚未接線上 bot 的專案怎麼辦」](AGENTS.md#尚未接線上-bot-的專案怎麼辦) 走過掃描與分類 |
 
 **狀態圖例：** ⏳ 待開始 ｜ 🟡 進行中 ｜ 🔍 審核中 ｜ ✅ 完成 ｜ ⛔ 阻塞
 
