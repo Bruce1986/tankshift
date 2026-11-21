@@ -104,14 +104,14 @@ These rules keep a silent fallback from changing a headline number. They are pro
 - **Time grid.** Steps are UTC minutes. Heating windows, group events and demand shapes are resolved in the scenario's local civil time, so daylight saving days (Australia) have 23 or 25 hours of steps. On a transition day, a dated input (a group event) at a local time that does not exist or occurs twice is a validation error unless it states the offset. A recurring daily edge (a heating window, a demand shape) resolves deterministically instead: a nonexistent time moves to the next valid instant, a repeated time takes its first occurrence, and the report notes it. Taiwan has no daylight saving time. Each tariff template states the clock its periods follow (civil or standard time) with a source, and tariff periods are resolved on that clock; T-06 checks this for the chosen Australian tariff.
 - **Heating windows are strict.** The heater never runs outside the allowed windows. When the tank falls short (a window ends below the setpoint, or showers go unmet), the report says so; the engine does not override the schedule. Whether a safety override should exist is an open question for T-03.
 - **Undated series.** A typical-year series without dates (such as a TMY weather file) is aligned to the simulated year by month and day. In a leap year, 29 February repeats 28 February, and the report notes it.
-- **Clamping is visible.** The COP model's inputs ($`T_{\text{air}}`$, $`T`$) are clamped to the range covered by the fitted operating points. The report shows, for baseline and scenario separately, the share of heat pump electricity computed with clamped inputs, as an assumption warning.
+- **Clamping is visible.** The COP model's inputs ($`T_{\text{air}}`$, $`T`$) are clamped to the range covered by the fitted operating points. Clamping a rectangle of inputs can still reach corners outside the fitted points, so the computed COP is also floored at 1.0, the value of resistance heating. The report shows, for baseline and scenario separately, the share of heat pump electricity computed with clamped inputs or a floored COP, as an assumption warning.
 
 Which task confirms each proposal in §2.2, §2.3, §2.4 and §3:
 
 | Proposal | Confirmed in |
 |---|---|
-| Scenario schema framework (§2.3; T-04 to T-06 add their own fields), validation framework, mixing-valve model and unmet definition, heating windows strict or with a safety override, loop loss coefficient and default | T-03 |
-| Heat pump COP and output fits, input clamping, the four environment temperature inputs and how an undated typical-year series maps to the simulated year | T-04 |
+| Scenario schema framework (§2.3; T-04 to T-06 add their own fields), SI time units in the solver, validation framework, mixing-valve model and unmet definition, heating windows strict or with a safety override, loop loss coefficient and default | T-03 |
+| Heat pump COP and output fits, input clamping and the COP floor, the four environment temperature inputs and how an undated typical-year series maps to the simulated year | T-04 |
 | $`T_{\text{tap}}`$ default, draw generation independent of tank, source, control and tariff, day-type and monthly multipliers | T-05 |
 | Location calendar and each tariff's own day classification, holiday sources, simulated year, time grid and daylight saving rules, tariff clock basis, coverage checks, gas price and carbon | T-06 |
 | Unmet tolerance, Legionella threshold and lower-bound reporting, like-for-like comparison, seed and clamping reporting | T-07 |
@@ -152,6 +152,8 @@ b = -\frac{UA + UA_{\text{loop}} + k}{m\, c_p} \le 0
 \qquad
 a = \frac{q_{\text{heater}} + UA\, T_{\text{surr}} + UA_{\text{loop}}\, T_{\text{loop}} + k\, T_{\text{mains}} - q_{\text{valve}}}{m\, c_p}
 ```
+
+The solver works in SI units: $`t`$ in seconds, $`b`$ in 1/s and $`a`$ in K/s, so a one-minute step is $`t = 60`$ s. Scenario fields in minutes (`stepMinutes`, `windowMinutes`) are converted once at input; mixing minutes into $`e^{bt}`$ would be off by a factor of 60.
 
 The closed-form solution is $`T(t) = (T_0 + a/b)\, e^{bt} - a/b`$, which decays towards $`-a/b`$. When $`b = 0`$ the solution is $`T(t) = T_0 + a t`$. The form above loses accuracy when $`b`$ is close to 0 ($`a/b`$ becomes large and cancels), so the implementation uses the equivalent form $`T(t) = T_0 + (a + b T_0)\, \operatorname{expm1}(bt)/b`$, taking $`\operatorname{expm1}(bt)/b`$ as $`t`$ when $`b = 0`$.
 
