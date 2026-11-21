@@ -12,7 +12,7 @@
 |---|---|
 | **進行中** | T-01（PR #1 審核中；合併後改 ✅、這格改「無」） |
 | **下一步** | T-02 TypeScript 工具鏈＋CI（新增相依套件前先問 owner）；T-10 看 PR #1 的 `/gemini review` 實測結果 |
-| **卡住／待拍板** | 無 |
+| **卡住／待拍板** | PR #1 的 `/gemini review` 沒有回應，疑似 Gemini App 沒裝在本 repo（見 2026-11-21 日誌），要 owner 確認 App 的 repo 存取設定 |
 
 ---
 
@@ -44,5 +44,8 @@
 - README 暫時不放聯絡信箱：`hotwater@brucejhang.com` 要等 owner 在 iCloud 開好再加，免得寄信的人收到退信。
 - 這支 PR 除了 Markdown 還動到 `LICENSE` 和刪除一個 workflow，所以 `ci.yml` 會跑；但它目前只做 checkout、不驗證任何東西。真正的檢查在 T-02 補上。
 
+- T-10 實測（PR #1）：2026-11-21 00:18:12Z 留言 `/gemini review`，到 00:39Z 為止 Gemini 沒有任何留言或 review，也沒有開 PR 時常見的自動摘要。同一時段 Gemini 在其他 repo 仍有回應（最晚一筆是 brucejhang_website#380 的 00:08:04Z、BrainSimulation#9 的 00:10:16Z），所以不是全面停擺。推測是 Gemini App 用「選定的 repo」方式安裝，新 repo 不在名單內；`gh` 的 token 沒有權限列出 App 安裝，無法確認，屬於推測。CodeRabbit 有留言，但說明本 repo 星數不到 10，不會自動 review。
+
 #### 下一步
+- owner 確認 Gemini App 的 repo 存取設定後，重貼 `/gemini review`（T-10）
 - T-02
