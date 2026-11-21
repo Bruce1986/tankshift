@@ -122,7 +122,9 @@ commit message 格式見 [`AGENTS.md`「Commit 慣例」](AGENTS.md#commit-慣�
 
 ## 專案特定注意事項
 
-{{若此專案有特定的環境設定、API 金鑰管理方式、部署流程或其他 Gemini 需要知道的事，寫在這裡。若無，刪除此段。}}
+- 對外文件（README、`docs/`、程式碼與註解）用英文；`README.zh-TW.md`、`WORKLOG.md`、`project-handbook.md` 用正體中文。
+- 本專案**不讀、不複製** AGPL 授權的 EcosizerEngine 原始碼；儲熱桶模型只依 EnergyPlus 公開工程手冊實作。review 時若看到疑似從 AGPL 專案搬來的程式碼，請標出。
+- 單位依 DESIGN §2.3：°C、K、L、W 或 kW、kWh，並寫在欄位名稱的字尾；功率欄位要標明是熱輸出還是電輸入。預設數值（電價、碳排係數、用水曲線）都要在資料檔裡附來源與年份。
 
 ---
 

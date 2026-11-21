@@ -1,57 +1,44 @@
-# {{專案名稱}}
+# tankshift
 
-> {{一句話描述：這個專案是什麼、解決什麼問題}}
+> An open-source simulator for building hot water systems: storage tanks, peak shower demand, time-of-use heating schedules and carbon.
 
-{{選填：2~3 行補充說明，講清楚它為誰而做、和現有方案有何不同。}}
+[繁體中文說明](README.zh-TW.md)
 
-## Features
+**Status: design stage.** There is no runnable code yet. The design is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
-- {{特色一}}
-- {{特色二}}
-- {{特色三}}
+## Why
 
-## Tech Stack
+A hotel guest typically showers once or twice a day, yet the hot water system is kept hot around the clock, so part of the energy goes to standby and recirculation losses rather than to showers. How large that part is varies by building, and tankshift is meant to estimate it for a given site. At the other extreme, a school group checking in at night may need more hot water in one hour than the tank holds.
 
-- {{語言 / 框架 / 主要依賴}}
+Manufacturer sizing calculators answer how big the equipment should be (see the design doc, §5). tankshift is meant to answer the questions that come after installation:
 
-## Getting Started
+- How much does the system cost per year, and where does the energy go?
+- If heating moves to off-peak hours, how much is saved, and does anyone get a cold shower?
+- What happens on the night 40 students all shower between 21:00 and 22:00?
 
-### Prerequisites
+## Planned features (v1)
 
-- {{執行所需工具與版本，例如 Node 18+ / JDK 17 / Go 1.22}}
+- **Venue-agnostic engine.** A venue is a preset of demand profile and defaults. v1 ships hotel and dormitory presets.
+- **Single-node storage tank model**, following the energy balance of EnergyPlus `WaterHeater:Mixed`, at a one-minute time step.
+- **Heat sources:** electric resistance, heat pump (COP varies with outdoor air and tank temperature) and gas boiler.
+- **Time-of-use tariffs and carbon factors** for Taiwan and Australia, each value with its source and year.
+- **Savings report** comparing a baseline with a modified scenario, in English and Traditional Chinese.
+- **Legionella check:** hours below the storage temperature threshold are reported (a lower bound in v1, see the design doc), never traded away for savings.
 
-> 把下面的 `{{...}}` 換成本專案實際的指令；沒有對應步驟（例如純函式庫沒有 run）
-> 就刪掉那一段。
+Not in v1: stratified tanks, grid demand-response signals, booking-based automatic preheating, and any control of real equipment.
 
-### Build & Run
+## Tech stack
 
-```bash
-{{BUILD_COMMAND}}
-{{RUN_COMMAND}}
-```
-
-### Test
-
-```bash
-{{TEST_COMMAND}}
-```
+TypeScript, published as a single npm package, so that the same engine runs in a CLI and in the browser.
 
 ## Roadmap
 
-- [ ] {{近期目標}}
-- [ ] {{中期目標}}
+See the task list in [`project-handbook.md`](project-handbook.md#任務清單) (in Traditional Chinese).
 
-詳細開發任務見 [`project-handbook.md`](project-handbook.md)。
+## Contributing and contact
 
-## Documentation
-
-- 開發協作手冊：[`project-handbook.md`](project-handbook.md)
-- AI 助理協作指南：[`AGENTS.md`](AGENTS.md)
-- Gemini 執行指南：[`GEMINI.md`](GEMINI.md)
-- 設計文件（若有）：[`docs/DESIGN.md`](docs/DESIGN.md)
+Questions, bug reports and venue data are welcome in [GitHub Issues](https://github.com/Bruce1986/tankshift/issues).
 
 ## License
 
-預設採用 [Apache-2.0](LICENSE)（可改成你想要的授權條款；換掉 `LICENSE`
-檔內容即可）。建立專案時記得把 `LICENSE` 附錄中的 `{{YYYY}} {{著作權人 / copyright owner}}`
-換成實際的年份與著作權人。
+[Apache-2.0](LICENSE)
