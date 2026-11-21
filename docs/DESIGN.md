@@ -132,7 +132,7 @@ m\, c_p \frac{dT}{dt} = q_{\text{heater}} + UA\,(T_{\text{surr}} - T) + UA_{\tex
 
 **Draws and delivery temperature.** Demand is specified at the tap: tap flow $`\dot{m}_{\text{tap}}`$ and a target delivery temperature $`T_{\text{tap}}`$, with $`T_{\text{tap}} > T_{\text{mains}}`$ required. A thermostatic mixing valve blends tank water with mains water:
 
-- While $`T \ge T_{\text{tap}}`$, the tank supplies the fraction $`(T_{\text{tap}} - T_{\text{mains}})/(T - T_{\text{mains}})`$ of the tap flow (between 0 and 1) and the rest is mains water. The heat leaving the tank is then the constant $`q_{\text{draw}} = \dot{m}_{\text{tap}}\, c_p\, (T_{\text{tap}} - T_{\text{mains}})`$, independent of $`T`$.
+- While $`T \ge T_{\text{tap}}`$, the tank supplies the fraction $`\frac{T_{\text{tap}} - T_{\text{mains}}}{T - T_{\text{mains}}}`$ of the tap flow (between 0 and 1) and the rest is mains water. The heat leaving the tank is then the constant $`q_{\text{draw}} = \dot{m}_{\text{tap}}\, c_p\, (T_{\text{tap}} - T_{\text{mains}})`$, independent of $`T`$.
 - While $`T < T_{\text{tap}}`$, the tank supplies the whole tap flow, so $`q_{\text{draw}} = \dot{m}_{\text{tap}}\, c_p\, (T - T_{\text{mains}})`$ and the water is delivered at $`T`$. That shower-minute counts as **unmet** when $`T`$ is below $`T_{\text{tap}}`$ by more than a tolerance.
 
 The default $`T_{\text{tap}}`$ and the tolerance are proposals to be settled in T-05 and T-07. The report counts unmet shower-minutes and the number of people affected, by hour.
