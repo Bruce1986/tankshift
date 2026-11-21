@@ -630,9 +630,6 @@ CI bot，就先把它併進 `BOTS` 重跑一次窄掃描（或在 PR 註記寫�
 - **命名**：變數、函式命名是否清晰有語意？
 - **錯誤處理**：失敗路徑是否有妥善處理與 log？
 - **測試**：新增的函式是否有對應的 unit test？跨模組／外部邊界的關鍵流程是否有 integration test（stub/fixture 隔離、CI 無金鑰可跑）？測試驗得到行為嗎（非恆過、預期值不照抄實作輸出、沒把被測邏輯 mock 掉）？新寫或大改的測試，PR 說明有無紅綠驗證紀錄（無 PR 直接 push 時，看 commit message 或 WORKLOG.md）？
-  <!-- 條件：多專案生態系才保留（此註解縮排 2 空白以維持列表連續，勿改 0） -->
-- **文件一致性**：若有對外介面異動，是否已更新 `../INTERFACES.md`？
-  <!-- /條件 -->
 
 ---
 
@@ -742,9 +739,6 @@ GitHub API 對過大 diff 回 406、線上 bot 額度燒更快），不是形式
   （新分支首推用 `git push -u origin HEAD` 設好 upstream）。
 - 額外要求：紅綠驗證（見[「撰寫程式碼的原則」](#撰寫程式碼的原則)）**不屬每輪驗證**——
   僅當該輪新寫或大改了測試，才對該測試做一次，並補 PR 說明紀錄。
-  <!-- 條件：需要多個 remote 才保留。例如同時備援到自架 git，把 {{REMOTE_NAME}} 換成該 remote 名稱。 -->
-- （選用）若有額外 remote：push 後同步 `git push {{REMOTE_NAME}} HEAD`
-  <!-- /條件 -->
 - 提醒（skill 本身的要求，特別重申）：宣告完成前必跑 skill 內的「final sweep」，確認沒有 quietly-dropped 的意見。
 
 ---
